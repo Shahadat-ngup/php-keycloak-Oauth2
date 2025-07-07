@@ -28,7 +28,7 @@ $id_token = $_SESSION['id_token'] ?? null;
 // 3. Build the proper Keycloak logout URL
 $logoutParams = [
     'client_id' => $config['keycloak']['clientId'],
-    'post_logout_redirect_uri' => 'http://localhost:8000/index.php'
+    'post_logout_redirect_uri' => 'http://localhost:8080/index.php'
 ];
 
 // Add id_token_hint if available (makes logout immediate)

@@ -10,6 +10,8 @@ A secure PHP implementation of Keycloak authentication using OAuth2 Authorizatio
 - 🚀 **Production Ready** with environment-based configuration
 - 📱 **User Profile Management** with Keycloak userinfo endpoint
 - 🔓 **Secure Logout** with proper session cleanup and Keycloak logout
+- 🎨 **Modern UI** with responsive design and beautiful interface
+- 📊 **Dashboard** with user information and security status
 
 ## Project Structure
 
@@ -59,7 +61,7 @@ PHP_Keycloak/
    KEYCLOAK_REALM=your-realm-name
    KEYCLOAK_CLIENT_ID=your-client-id
    KEYCLOAK_CLIENT_SECRET=your-client-secret
-   KEYCLOAK_REDIRECT_URI=http://localhost:8000/login.php
+   KEYCLOAK_REDIRECT_URI=http://localhost:8080/login.php
    ```
    **⚠️ Important**: The `.env` file contains sensitive information and is excluded from git via `.gitignore`. Never commit this file to version control.
 Note: The values have to be taken from Keycloak Client and make sure PKCE is active inside the client in the Advanced tab
@@ -76,9 +78,9 @@ Note: The values have to be taken from Keycloak Client and make sure PKCE is act
 ### 3. Configure Client Settings
 In the client settings:
 - **Root URL**: 'https://keycloak.ccom.ipb.pt:8443'
-- **Valid redirect URIs**: `http://localhost:8000/*`
-- **Valid post logout redirect URIs**: `http://localhost:8000/index.php/*`
-- **Web origins**: `http://localhost:8000/*`
+- **Valid redirect URIs**: `http://localhost:8080/*`
+- **Valid post logout redirect URIs**: `http://localhost:8080/index.php/*`
+- **Web origins**: `http://localhost:8080/*`
 - **Standard Flow Enabled**: `On`
 - **Direct Access Grants Enabled**: `On`
 Note: The * allows all the remaining paths
@@ -139,14 +141,17 @@ Note: The * allows all the remaining paths
 
 1. **Start your web server**
    ```bash
-   # Using PHP built-in server
-   php -S localhost:8000
+   # Using PHP built-in server (try different ports if 8000 is in use)
+   php -S localhost:8080
+   
+   # Or if port 8080 is in use, try another port
+   php -S localhost:3000
    
    # Or configure Apache/Nginx to serve the project
    ```
 
 2. **Access the application**
-   - Navigate to `http://localhost:8000`
+   - Navigate to `http://localhost:8080` (or the port you're using)
    - Click "Login with Keycloak"
    - Authenticate with your Keycloak credentials
    - You'll be redirected to the home page
@@ -188,6 +193,32 @@ Secure logout implementation:
 - Redirects to Keycloak logout endpoint
 - Includes ID token hint for immediate logout
 
+## UI Design
+
+The application features a modern, responsive design with:
+
+### Login Page (`index.php`)
+- **Gradient Background**: Beautiful purple gradient with glassmorphism effect
+- **Interactive Elements**: Hover animations and pulse effects
+- **Feature Cards**: Highlighting security features (OAuth2, SSO, Responsive)
+- **Mobile Responsive**: Optimized for all screen sizes
+- **Font Awesome Icons**: Professional iconography
+
+### Dashboard (`home.php`)
+- **Card-Based Layout**: Clean, organized information display
+- **User Profile Section**: Complete user information from Keycloak
+- **Security Status**: Visual confirmation of security features
+- **Session Information**: Real-time session details
+- **Gradient Headers**: Eye-catching design elements
+- **Smooth Animations**: Fade-in effects and hover transitions
+
+### Design Features
+- **CSS Grid & Flexbox**: Modern layout techniques
+- **Custom Animations**: Smooth transitions and micro-interactions
+- **Color Scheme**: Professional purple/blue gradient theme
+- **Typography**: Clean, readable Segoe UI font stack
+- **Accessibility**: High contrast and keyboard navigation support
+
 ## PKCE Testing
 
 ### How to Test PKCE Implementation
@@ -207,7 +238,7 @@ Use browser developer tools to monitor the authentication flow:
 ```
 https://your-keycloak.com/realms/your-realm/protocol/openid-connect/auth?
   client_id=your-client-id&
-  redirect_uri=http://localhost:8000/login.php&
+  redirect_uri=http://localhost:8080/login.php&
   response_type=code&
   scope=openid+profile+email&
   state=random-state-value&
@@ -226,7 +257,7 @@ grant_type=authorization_code&
 code=authorization-code&
 client_id=your-client-id&
 client_secret=your-client-secret&
-redirect_uri=http://localhost:8000/login.php&
+redirect_uri=http://localhost:8080/login.php&
 code_verifier=original-random-verifier  ← PKCE Verifier
 ```
 
@@ -316,7 +347,7 @@ Test the complete flow manually:
 
 2. **Test authorization URL:**
    ```bash
-   curl -v "http://localhost:8080/realms/your-realm/protocol/openid-connect/auth?client_id=your-client&response_type=code&redirect_uri=http://localhost:8000/login.php&scope=openid&code_challenge=$CODE_CHALLENGE&code_challenge_method=S256"
+   curl -v "http://localhost:8080/realms/your-realm/protocol/openid-connect/auth?client_id=your-client&response_type=code&redirect_uri=http://localhost:8080/login.php&scope=openid&code_challenge=$CODE_CHALLENGE&code_challenge_method=S256"
    ```
 
 #### Expected PKCE Behavior:

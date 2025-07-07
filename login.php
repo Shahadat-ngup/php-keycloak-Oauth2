@@ -1,4 +1,9 @@
 <?php
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('log_errors', 1);
+
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/KeycloakProvider.php';
 require_once __DIR__ . '/keycloak-config.php';
@@ -96,6 +101,9 @@ if (!isset($_GET['code'])) {
         // Fetch user profile
         $user = $provider->getResourceOwner($accessToken);
         $_SESSION['user'] = $user->toArray();
+
+        // Debug: Log successful authentication
+        error_log('User authenticated successfully: ' . print_r($user->toArray(), true));
 
         // Cleanup PKCE/CSRF session data
         unset($_SESSION['oauth2state'], $_SESSION['oauth2_code_verifier']);
