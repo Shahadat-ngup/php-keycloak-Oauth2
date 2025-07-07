@@ -1,0 +1,57 @@
+# Environment variables (contains sensitive data)
+.env
+.env.local
+.env.production
+.env.staging
+
+# Composer dependencies
+/vendor/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Log files
+*.log
+/logs/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Cache files
+*.cache
+/cache/
+
+# Session files
+/sessions/
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# PHPStorm
+.phpstorm.meta.php
+
+# PHP CS Fixer
+.php-cs-fixer.cache
+
+# PHPUnit
+.phpunit.result.cache
+/coverage/
+
+# Composer lock file (optional - remove this line if you want to commit composer.lock)
+# composer.lock

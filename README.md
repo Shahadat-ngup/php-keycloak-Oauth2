@@ -24,7 +24,8 @@ PHP_Keycloak/
 ├── callback.php               # OAuth2 callback handler (redirects to login.php)
 ├── home.php                   # Protected dashboard page
 ├── logout.php                 # Logout handler
-├── .env                       # Environment variables (create this)
+├── .env                       # Environment variables (create this - not in git)
+├── .gitignore                 # Git ignore file to exclude sensitive files
 └── vendor/                    # Composer dependencies
 ```
 
@@ -60,6 +61,7 @@ PHP_Keycloak/
    KEYCLOAK_CLIENT_SECRET=your-client-secret
    KEYCLOAK_REDIRECT_URI=http://localhost:8000/login.php
    ```
+   **⚠️ Important**: The `.env` file contains sensitive information and is excluded from git via `.gitignore`. Never commit this file to version control.
 Note: The values have to be taken from Keycloak Client and make sure PKCE is active inside the client in the Advanced tab
 ## Keycloak Setup
 
@@ -365,6 +367,9 @@ error_log('User Info: ' . print_r($user->toArray(), true));
 - Validate all input parameters
 - Implement proper error handling
 - Use strong random number generation for PKCE
+- **Never commit sensitive files**: `.env` file is excluded via `.gitignore`
+- Use environment-specific configuration files for different deployments
+- Regularly rotate client secrets and access tokens
 
 ## Contributing
 
