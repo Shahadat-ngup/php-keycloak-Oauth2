@@ -10,8 +10,6 @@ A secure PHP implementation of Keycloak authentication using OAuth2 Authorizatio
 - 🚀 **Production Ready** with environment-based configuration
 - 📱 **User Profile Management** with Keycloak userinfo endpoint
 - 🔓 **Secure Logout** with proper session cleanup and Keycloak logout
-- 🎨 **Modern UI** with responsive design and beautiful interface
-- 📊 **Dashboard** with user information and security status
 
 ## Project Structure
 
@@ -164,201 +162,48 @@ Note: The * allows all the remaining paths
 ## File Descriptions
 
 ### `KeycloakProvider.php`
-Custom OAuth2 provider extending League's AbstractProvider:
-- Implements Keycloak-specific endpoints
-- Handles token exchange and user info retrieval
-- Provides resource owner (user) object
+Custom OAuth2 provider extending League's AbstractProvider for Keycloak integration.
 
 ### `login.php`
-Main authentication handler:
-- Generates PKCE code verifier/challenge
-- Handles authorization redirect
-- Processes OAuth2 callback
-- Manages token exchange and user session
+Main authentication handler that manages OAuth2 flow with PKCE.
 
 ### `keycloak-config.php`
-Configuration file that loads environment variables:
-- Client credentials
-- Keycloak server URLs
-- Redirect URIs
+Configuration file that loads environment variables.
 
 ### `home.php`
-Protected dashboard showing user information:
-- Displays user name and email
-- Provides logout functionality
+Protected dashboard showing authenticated user information.
 
 ### `logout.php`
-Secure logout implementation:
-- Clears local session
-- Redirects to Keycloak logout endpoint
-- Includes ID token hint for immediate logout
-
-## UI Design
-
-The application features a modern, responsive design with:
-
-### Login Page (`index.php`)
-- **Gradient Background**: Beautiful purple gradient with glassmorphism effect
-- **Interactive Elements**: Hover animations and pulse effects
-- **Feature Cards**: Highlighting security features (OAuth2, SSO, Responsive)
-- **Mobile Responsive**: Optimized for all screen sizes
-- **Font Awesome Icons**: Professional iconography
-
-### Dashboard (`home.php`)
-- **Card-Based Layout**: Clean, organized information display
-- **User Profile Section**: Complete user information from Keycloak
-- **Security Status**: Visual confirmation of security features
-- **Session Information**: Real-time session details
-- **Gradient Headers**: Eye-catching design elements
-- **Smooth Animations**: Fade-in effects and hover transitions
-
-### Design Features
-- **CSS Grid & Flexbox**: Modern layout techniques
-- **Custom Animations**: Smooth transitions and micro-interactions
-- **Color Scheme**: Professional purple/blue gradient theme
-- **Typography**: Clean, readable Segoe UI font stack
-- **Accessibility**: High contrast and keyboard navigation support
+Secure logout implementation with Keycloak session cleanup.
 
 ## PKCE Testing
 
-### How to Test PKCE Implementation
+### Test Files for PKCE Verification
 
-PKCE (Proof Key for Code Exchange) adds an extra layer of security to the OAuth2 flow. Here's how to verify it's working:
+Two test files are included to verify the PKCE implementation:
 
-#### 1. **Verify PKCE Parameters in Network Traffic**
+#### 1. `test-pkce.php`
+**Purpose**: Comprehensive PKCE and Keycloak configuration testing
+- Tests PKCE code generation and verification algorithms
+- Validates environment configuration
+- Tests Keycloak server connectivity and PKCE support
+- Generates complete authorization URLs with PKCE parameters
+- **Run**: `php test-pkce.php`
 
-Use browser developer tools to monitor the authentication flow:
+#### 2. `test-oauth-flow.php`
+**Purpose**: Tests OAuth2 flow components without external dependencies
+- Validates OAuth2 provider configuration
+- Tests authorization URL generation with PKCE parameters
+- Verifies token and userinfo endpoint configuration
+- **Run**: `php test-oauth-flow.php`
 
-1. Open browser Developer Tools (F12)
-2. Go to **Network** tab
-3. Start the login process
-4. Look for the initial authorization request to Keycloak
+### Manual PKCE Verification
 
-**Check for PKCE parameters:**
-```
-https://your-keycloak.com/realms/your-realm/protocol/openid-connect/auth?
-  client_id=your-client-id&
-  redirect_uri=http://localhost:8080/login.php&
-  response_type=code&
-  scope=openid+profile+email&
-  state=random-state-value&
-  code_challenge=base64url-encoded-challenge&  ← PKCE Challenge
-  code_challenge_method=S256                    ← PKCE Method
-```
-
-#### 2. **Verify Code Verifier in Token Exchange**
-
-In the token exchange request (second network call), verify:
-```
-POST /realms/your-realm/protocol/openid-connect/token
-Content-Type: application/x-www-form-urlencoded
-
-grant_type=authorization_code&
-code=authorization-code&
-client_id=your-client-id&
-client_secret=your-client-secret&
-redirect_uri=http://localhost:8080/login.php&
-code_verifier=original-random-verifier  ← PKCE Verifier
-```
-
-#### 3. **Test PKCE Failure Scenarios**
-
-To verify PKCE is working, try these intentional failures:
-
-**A. Modify Code Verifier (Simulate Attack)**
-1. Add temporary debug code in `login.php`:
-   ```php
-   // Before token exchange, modify the verifier
-   $_SESSION['oauth2_code_verifier'] = 'wrong_verifier';
-   ```
-2. Complete the login flow
-3. Should receive error: "Invalid code verifier"
-
-**B. Remove PKCE Parameters**
-1. Comment out PKCE generation in `login.php`:
-   ```php
-   // $authorizationUrl = $provider->getAuthorizationUrl([
-   //     'code_challenge' => $codeChallenge,
-   //     'code_challenge_method' => 'S256',
-   //     'scope' => 'openid profile email'
-   // ]);
-   ```
-2. If Keycloak requires PKCE, login should fail
-
-#### 4. **PKCE Security Test Script**
-
-Create a test script to verify PKCE generation:
-
-```php
-<?php
-// test-pkce.php
-function testPKCE() {
-    // Generate code verifier
-    $codeVerifier = bin2hex(random_bytes(64));
-    echo "Code Verifier Length: " . strlen($codeVerifier) . " (should be 128)\n";
-    echo "Code Verifier: " . $codeVerifier . "\n\n";
-    
-    // Generate code challenge
-    $codeChallenge = rtrim(strtr(
-        base64_encode(hash('sha256', $codeVerifier, true)),
-        '+/', '-_'), '=');
-    echo "Code Challenge Length: " . strlen($codeChallenge) . " (should be 43)\n";
-    echo "Code Challenge: " . $codeChallenge . "\n\n";
-    
-    // Verify challenge can be reproduced from verifier
-    $verifyChallenge = rtrim(strtr(
-        base64_encode(hash('sha256', $codeVerifier, true)),
-        '+/', '-_'), '=');
-    
-    echo "PKCE Verification: " . ($codeChallenge === $verifyChallenge ? "✅ PASS" : "❌ FAIL") . "\n";
-}
-
-testPKCE();
-```
-
-Run: `php test-pkce.php`
-
-#### 5. **Keycloak Server-Side Verification**
-
-Check Keycloak logs for PKCE validation:
-```bash
-# If using Docker
-docker logs keycloak-container-name | grep -i pkce
-
-# Look for entries like:
-# "PKCE code challenge verified successfully"
-# "Invalid PKCE code verifier"
-```
-
-#### 6. **Manual PKCE Flow Test**
-
-Test the complete flow manually:
-
-1. **Generate PKCE parameters:**
-   ```bash
-   # Generate code verifier (128 hex chars = 64 random bytes)
-   CODE_VERIFIER=$(openssl rand -hex 64)
-   echo "Code Verifier: $CODE_VERIFIER"
-   
-   # Generate code challenge (SHA256 hash, base64url encoded)
-   CODE_CHALLENGE=$(echo -n $CODE_VERIFIER | sha256sum | cut -d' ' -f1 | xxd -r -p | base64 | tr '+/' '-_' | tr -d '=')
-   echo "Code Challenge: $CODE_CHALLENGE"
-   ```
-
-2. **Test authorization URL:**
-   ```bash
-   curl -v "http://localhost:8080/realms/your-realm/protocol/openid-connect/auth?client_id=your-client&response_type=code&redirect_uri=http://localhost:8080/login.php&scope=openid&code_challenge=$CODE_CHALLENGE&code_challenge_method=S256"
-   ```
-
-#### Expected PKCE Behavior:
-- ✅ **Success**: Login completes when correct verifier is used
-- ❌ **Failure**: Error when wrong verifier is provided
-- ❌ **Failure**: Error when PKCE parameters are missing (if required)
-
-### PKCE Benefits Demonstrated:
-1. **No Client Secret in Public Clients**: PKCE allows secure OAuth2 for SPAs/mobile apps
-2. **Code Interception Protection**: Even if authorization code is intercepted, it's useless without the verifier
-3. **Dynamic Security**: Each login generates unique verifier/challenge pair
+Use browser developer tools to verify PKCE in the actual flow:
+1. Open Developer Tools (F12) → Network tab
+2. Start login process
+3. Check authorization request for `code_challenge` and `code_challenge_method=S256`
+4. Check token exchange request for `code_verifier` parameter
 
 ## Troubleshooting
 
