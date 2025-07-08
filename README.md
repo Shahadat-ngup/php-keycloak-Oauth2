@@ -55,15 +55,21 @@ PHP_Keycloak/
    APP_ENV=development
 
    # Keycloak Configuration
-   KEYCLOAK_AUTH_SERVER_URL=http://localhost:8080
-   KEYCLOAK_REALM=your-realm-name
-   KEYCLOAK_CLIENT_ID=your-client-id
-   KEYCLOAK_CLIENT_SECRET=your-client-secret
+   KEYCLOAK_AUTH_SERVER_URL=https://keycloak.ccom.ipb.pt:8443
+   KEYCLOAK_REALM=myrealm
+   KEYCLOAK_CLIENT_ID=webApp
+   # For PKCE (public client), no client secret is needed
+   KEYCLOAK_CLIENT_SECRET=
    KEYCLOAK_REDIRECT_URI=http://localhost:8080/login.php
    ```
    **⚠️ Important**: The `.env` file contains sensitive information and is excluded from git via `.gitignore`. Never commit this file to version control.
+
+   **📝 Note**: This example uses a remote Keycloak server. Update the `KEYCLOAK_AUTH_SERVER_URL` to match your Keycloak instance. For local development, you can use `http://localhost:8080` if running Keycloak locally.
+
 Note: The values have to be taken from Keycloak Client and make sure PKCE is active inside the client in the Advanced tab
 ## Keycloak Setup
+
+This project works with both local and remote Keycloak instances. The example configuration uses a remote Keycloak server at `https://keycloak.ccom.ipb.pt:8443`.
 
 ### 1. Create a Client
 1. Navigate to **Clients** in your realm
@@ -75,12 +81,13 @@ Note: The values have to be taken from Keycloak Client and make sure PKCE is act
 
 ### 3. Configure Client Settings
 In the client settings:
-- **Root URL**: 'https://keycloak.ccom.ipb.pt:8443'
+- **Root URL**: `https://keycloak.ccom.ipb.pt:8443`
 - **Valid redirect URIs**: `http://localhost:8080/*`
 - **Valid post logout redirect URIs**: `http://localhost:8080/index.php/*`
 - **Web origins**: `http://localhost:8080/*`
 - **Standard Flow Enabled**: `On`
 - **Direct Access Grants Enabled**: `On`
+- **Client authentication**: `Off` (for PKCE public clients)
 Note: The * allows all the remaining paths
 ### 4. PKCE Configuration
 - **Proof Key for Code Exchange Code Challenge Method**: `S256`
@@ -139,10 +146,10 @@ Note: The * allows all the remaining paths
 
 1. **Start your web server**
    ```bash
-   # Using PHP built-in server (try different ports if 8000 is in use)
+   # Using PHP built-in server (recommended port 8080 to match redirect URI)
    php -S localhost:8080
    
-   # Or if port 8080 is in use, try another port
+   # Or if port 8080 is in use, try another port and update redirect URI accordingly
    php -S localhost:3000
    
    # Or configure Apache/Nginx to serve the project
@@ -156,7 +163,7 @@ Note: The * allows all the remaining paths
 
 3. **User Flow**
    ```
-   index.php → login.php → Keycloak → login.php (callback) → home.php
+   index.php → login.php → Keycloak (https://keycloak.ccom.ipb.pt:8443) → login.php (callback) → home.php
    ```
 
 ## File Descriptions

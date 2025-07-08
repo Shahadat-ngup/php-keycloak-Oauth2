@@ -17,6 +17,11 @@ class KeycloakProvider extends AbstractProvider
 
     public function __construct(array $options = [], array $collaborators = [])
     {
+        // Filter out null clientSecret for PKCE public clients
+        if (isset($options['clientSecret']) && $options['clientSecret'] === null) {
+            unset($options['clientSecret']);
+        }
+        
         parent::__construct($options, $collaborators);
         
         $this->authServerUrl = rtrim($options['authServerUrl'], '/');
@@ -61,6 +66,27 @@ class KeycloakProvider extends AbstractProvider
     protected function getScopeSeparator()
     {
         return ' ';
+    }
+
+    /**
+     * Override to support PKCE (no client secret authentication)
+     */
+    protected function getAccessTokenOptions(array $params)
+    {
+        $options = parent::getAccessTokenOptions($params);
+        
+        // For PKCE, we use client_id in the body instead of basic auth
+        if (!isset($this->clientSecret) || $this->clientSecret === null) {
+            // Remove basic auth headers for public clients
+            if (isset($options['headers']['Authorization'])) {
+                unset($options['headers']['Authorization']);
+            }
+            
+            // Ensure client_id is in the body for public clients
+            $options['body']['client_id'] = $this->clientId;
+        }
+        
+        return $options;
     }
 }
 

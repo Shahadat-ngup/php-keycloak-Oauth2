@@ -12,6 +12,9 @@ require_once __DIR__ . '/keycloak-config.php';
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
+// Debug: Log all request parameters
+error_log('Login.php called with: ' . print_r($_GET, true));
+
 // Secure session configuration
 session_set_cookie_params([
     'lifetime' => 86400,
@@ -36,6 +39,22 @@ try {
         throw new RuntimeException('Invalid Keycloak configuration array.');
     }
 
+    // Validate required configuration
+    $required = ['clientId', 'redirectUri', 'authServerUrl', 'realm'];
+    foreach ($required as $key) {
+        if (empty($config['keycloak'][$key])) {
+            throw new RuntimeException("Missing required configuration: $key");
+        }
+    }
+
+    // Debug: Log configuration (without sensitive data)
+    error_log('Keycloak config loaded: ' . json_encode([
+        'clientId' => $config['keycloak']['clientId'],
+        'redirectUri' => $config['keycloak']['redirectUri'],
+        'authServerUrl' => $config['keycloak']['authServerUrl'],
+        'realm' => $config['keycloak']['realm']
+    ]));
+
     $provider = new KeycloakProvider($config['keycloak']);
 
 } catch (Exception $e) {
@@ -47,6 +66,9 @@ try {
 // OAuth Step 1: No code yet - redirect user
 if (!isset($_GET['code'])) {
     try {
+        // Clear any existing session data to prevent conflicts
+        unset($_SESSION['oauth2state'], $_SESSION['oauth2_code_verifier'], $_SESSION['user']);
+        
         // PKCE - Generate code verifier + challenge
         $codeVerifier = bin2hex(random_bytes(64));
         $_SESSION['oauth2_code_verifier'] = $codeVerifier;
@@ -65,14 +87,22 @@ if (!isset($_GET['code'])) {
         // Save CSRF state
         $_SESSION['oauth2state'] = $provider->getState();
 
+        // Debug log
+        error_log('Redirecting to Keycloak: ' . $authorizationUrl);
+
         // Redirect to Keycloak login
         header('Location: ' . $authorizationUrl);
         exit;
 
     } catch (Exception $e) {
         error_log('Authorization URL error: ' . $e->getMessage());
+        // Clear session data on error
+        unset($_SESSION['oauth2state'], $_SESSION['oauth2_code_verifier']);
         http_response_code(500);
-        exit('Error initiating login.');
+        echo '<h2>Error initiating login</h2>';
+        echo '<p>Error: ' . htmlspecialchars($e->getMessage()) . '</p>';
+        echo '<p><a href="index.php">Go back to home</a></p>';
+        exit;
     }
 
 } else {
